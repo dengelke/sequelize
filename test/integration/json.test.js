@@ -3,6 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
+  dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
   DataTypes = Sequelize.DataTypes;
@@ -33,7 +34,7 @@ describe('model', () => {
         }, {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
-            const expected = '\'{"name":"joe","phones":[1337,42]}\'';
+            const expected = dialect === 'mysql' ? '\'{\\"name\\":\\"joe\\",\\"phones\\":[1337,42]}\'' : '\'{"name":"joe","phones":[1337,42]}\'' ;
             expect(sql.indexOf(expected)).not.to.equal(-1);
           }
         });

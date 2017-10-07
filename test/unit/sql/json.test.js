@@ -16,7 +16,8 @@ if (current.dialect.supports.JSON) {
       suite('escape', () => {
         test('plain string', () => {
           expectsql(sql.escape('string', { type: new DataTypes.JSON() }), {
-            default: '\'"string"\''
+            default: '\'"string"\'',
+            mysql: '\'\\"string\\"\''
           });
         });
 
@@ -46,7 +47,8 @@ if (current.dialect.supports.JSON) {
 
         test('nested object', () => {
           expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
-            default: '\'{"some":"nested","more":{"nested":true},"answer":42}\''
+            default: '\'{"some":"nested","more":{"nested":true},"answer":42}\'',
+            mysql: '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\''
           });
         });
 
@@ -78,6 +80,7 @@ if (current.dialect.supports.JSON) {
       suite('path extraction', () => {
         test('condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ id: 1 })), {
+            mysql: "json_extract(`id`, '$') = '1'",
             postgres: '("id"#>>\'{}\') = \'1\'',
             sqlite: "json_extract(`id`, '$') = '1'"
           });
@@ -85,6 +88,7 @@ if (current.dialect.supports.JSON) {
 
         test('nested condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
+            mysql: "json_extract(`profile`, '$.id') = '1'",
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`, '$.id') = '1'"
           });
@@ -92,6 +96,7 @@ if (current.dialect.supports.JSON) {
 
         test('multiple condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } })), {
+            mysql: "json_extract(`property`, '$.value') = '1' AND json_extract(`another`, '$.value') = 'string'",
             postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
             sqlite: "json_extract(`property`, '$.value') = '1' AND json_extract(`another`, '$.value') = 'string'"
           });
@@ -99,6 +104,7 @@ if (current.dialect.supports.JSON) {
 
         test('dot notaion', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
+            mysql: "json_extract(`profile`, '$.id') = '1'",
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`, '$.id') = '1'"
           });
@@ -106,6 +112,7 @@ if (current.dialect.supports.JSON) {
 
         test('column named "json"', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('json'), '{}'), {
+            mysql: "json_extract(`json`, '$') = '{}'",
             postgres: '("json"#>>\'{}\') = \'{}\'',
             sqlite: "json_extract(`json`, '$') = '{}'"
           });
@@ -116,6 +123,7 @@ if (current.dialect.supports.JSON) {
         if (current.dialect.name === 'postgres') {
           test('#>> operator', () => {
             expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
+              mysql:  "json_extract(`data`, '$.id') = 'id'",
               postgres: '("data"#>>\'{id}\') = \'id\''
             });
           });

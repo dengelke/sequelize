@@ -6,6 +6,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
 const current = Support.sequelize;
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('paranoid', () => {
@@ -102,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.JSON && dialect !== 'mysql') {
       describe('JSONB', () => {
         before(function() {
           this.Model = this.sequelize.define('Model', {
